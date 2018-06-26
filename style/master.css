@@ -1,0 +1,33 @@
+body {
+  height: 100vh;
+  width: 100vw;
+  background-color: gray;
+}
+
+#game {
+  grid-template-rows: 30vmin 30vmin 30vmin;
+  grid-template-columns: 30vmin 30vmin 30vmin;
+  height: 90vmin;
+  width: 90vmin;
+  display: grid;
+  margin: auto;
+  grid-gap: 10px;
+}
+
+.board {
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
+  height: 100%;
+  width: 100%;
+  display: grid;
+  background-color: white;
+}
+
+.box {
+  border: 1px solid gray;
+}
+
+/* @media all and (orientation: landscape) {
+}
+@media all and (orientation: portrait) {
+} */

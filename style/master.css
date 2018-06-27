@@ -27,6 +27,36 @@ body {
   border: 1px solid gray;
 }
 
+.box-filled {
+  border: 1px solid gray;
+}
+
+.active {
+  background-color: green;
+}
+
+.active > .box:hover {
+  background-color: red;
+}
+
+.box > img {
+  visibility: hidden;
+  height: 100%;
+  width: 100%;
+  display: flex;
+}
+
+.box-filled > img {
+  height: 100%;
+  width: 100%;
+  display: flex;
+}
+
+.active > .box:hover > img {
+  visibility: visible;
+  cursor: pointer;
+}
+
 /* @media all and (orientation: landscape) {
 }
 @media all and (orientation: portrait) {

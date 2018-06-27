@@ -1,6 +1,26 @@
 const Game = require("./lib/game.js");
+const CPU = require("./lib/CPU.js");
 
 document.addEventListener("DOMContentLoaded", function(event) {
+  setupBoard();
+  document.querySelector("#start-button").addEventListener("click", e => {
+    setupBoard();
+    let game = new Game();
+    $("#game").data("game", game);
+    let boardEl = "null";
+    game.availableMoves().forEach(i => {
+      boardEl = document.querySelector("#board" + (i + 1));
+      boardEl.className = "board active";
+      let boxEl = null;
+      for (var j = 1; j < 10; j++) {
+        boxEl = document.querySelector("#box" + (i * 9 + j));
+        boxEl.addEventListener("click", e => makeMove(e));
+      }
+    });
+  });
+});
+
+function setupBoard() {
   const gameHook = document.querySelector("#game");
   let board = null;
   let box = null;
@@ -18,24 +38,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
       box.innerHTML += div.outerHTML;
       board.innerHTML += box.outerHTML;
     }
-    gameHook.innerHTML += board.outerHTML;
+    if (i === 1) {
+      gameHook.innerHTML = board.outerHTML;
+    } else {
+      gameHook.innerHTML += board.outerHTML;
+    }
   }
-  document.querySelector("#start-button").addEventListener("click", e => {
-    let game = new Game();
-    $("#game").data("game", game);
-    let boardEl = "null";
-    game.availableMoves().forEach(i => {
-      boardEl = document.querySelector("#board" + (i + 1));
-      boardEl.className = "board active";
-      let boxEl = null;
-      for (var j = 1; j < 10; j++) {
-        boxEl = document.querySelector("#box" + (i * 9 + j));
-        boxEl.addEventListener("click", e => makeMove(e));
-      }
-    });
-  });
-});
-
+}
 function makeMove(e) {
   const gameJS = $("#game").data("game");
   let moveI = e.path[1].id.substring(3) / 9;
@@ -44,9 +53,6 @@ function makeMove(e) {
     moveJ = 9;
     moveI -= 1;
   }
-  console.log(moveI);
-  console.log(moveJ);
-  console.log(gameJS.validMove(Math.floor(moveI), moveJ));
   if (gameJS.validMove(Math.floor(moveI), moveJ)) {
     gameJS.makeMove(Math.floor(moveI), moveJ);
     document.querySelectorAll(".box").forEach(box => {
@@ -68,6 +74,7 @@ function makeMove(e) {
     document.querySelectorAll(".active").forEach((active, i) => {
       active.className = "board";
     });
+    let cpu = new CPU(gameJS);
     gameJS.availableMoves().forEach(i => {
       boardEl = document.querySelector("#board" + (i + 1));
       boardEl.className = "board active";

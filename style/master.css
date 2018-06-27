@@ -4,6 +4,17 @@ body {
   background-color: gray;
 }
 
+header {
+  height: 30px;
+}
+
+#start-button {
+  width: 100px;
+  height: 75px;
+  float: left;
+  margin: 20px;
+}
+
 #game {
   grid-template-rows: 30vmin 30vmin 30vmin;
   grid-template-columns: 30vmin 30vmin 30vmin;

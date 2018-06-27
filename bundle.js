@@ -98,41 +98,60 @@ class Board {
     this.board = [null, null, null, null, null, null, null, null, null];
   }
 
+  board() {
+    return this.board;
+  }
+
   makeMove(player, position) {
     this.board[position - 1] = player;
   }
 
   won() {
+    let response = false;
     if (
-      ((this.board[0] === this.board[4]) === this.board[8] &&
+      (this.board[0] === this.board[4] &&
+        this.board[4] === this.board[8] &&
         this.board[4] !== null) ||
-      ((this.board[1] === this.board[4]) === this.board[7] &&
+      (this.board[1] === this.board[4] &&
+        this.board[4] === this.board[7] &&
         this.board[4] !== null) ||
-      ((this.board[2] === this.board[4]) === this.board[6] &&
+      (this.board[2] === this.board[4] &&
+        this.board[4] === this.board[6] &&
         this.board[4] !== null) ||
-      ((this.board[3] === this.board[4]) === this.board[5] &&
+      (this.board[3] === this.board[4] &&
+        this.board[4] === this.board[5] &&
         this.board[4] !== null)
     ) {
-      return this.board[4];
+      response = this.board[4];
     } else if (
-      ((this.board[6] === this.board[7]) === this.board[8] &&
+      (this.board[6] === this.board[7] &&
+        this.board[6] === this.board[8] &&
         this.board[6] !== null) ||
-      ((this.board[0] === this.board[3]) === this.board[6] &&
+      (this.board[0] === this.board[3] &&
+        this.board[0] === this.board[6] &&
         this.board[6] !== null)
     ) {
-      return this.board[6];
+      response = this.board[6];
     } else if (
-      ((this.board[2] === this.board[5]) === this.board[8] &&
-        this.board[0] !== null) ||
-      ((this.board[0] === this.board[1]) === this.board[2] &&
+      (this.board[2] === this.board[5] &&
+        this.board[2] === this.board[8] &&
+        this.board[2] !== null) ||
+      (this.board[0] === this.board[1] &&
+        this.board[0] === this.board[2] &&
         this.board[2] !== null)
     ) {
-      return this.board[0];
+      response = this.board[0];
     } else if (this.board.includes(null) === false) {
-      return "draw";
+      response = "draw";
     } else {
-      return false;
+      response = false;
     }
+    console.log(this.board[2]);
+    console.log(this.board[5]);
+    console.log(this.board[8]);
+    // console.log((this.board[2] === this.board[5]) === this.board[8]);
+    console.log(response);
+    return response;
   }
 }
 
@@ -177,6 +196,13 @@ class Game {
       });
       return arr;
     }
+  }
+
+  validMove(i, j) {
+    if (this.game[i].board[j - 1]) {
+      return false;
+    }
+    return true;
   }
 
   makeMove(i, j) {
@@ -248,29 +274,38 @@ function makeMove(e) {
     moveJ = 9;
     moveI -= 1;
   }
-  gameJS.makeMove(Math.floor(moveI), moveJ);
-  document.querySelectorAll(".box").forEach(box => {
-    var new_element = box.cloneNode(true);
-    box.parentNode.replaceChild(new_element, box);
-  });
-  const moveBox = document.querySelector("#box" + e.path[1].id.substring(3));
-  moveBox.className = "box-filled";
-  if (gameJS.player === "X") {
-    document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
-      "./assets/O.png";
-  }
-  document.querySelectorAll(".active").forEach((active, i) => {
-    active.className = "board";
-  });
-  gameJS.availableMoves().forEach(i => {
-    boardEl = document.querySelector("#board" + (i + 1));
-    boardEl.className = "board active";
-    let boxEl = null;
-    for (var j = 1; j < 10; j++) {
-      boxEl = document.querySelector("#box" + (i * 9 + j));
-      boxEl.addEventListener("click", e => makeMove(e));
+  if (gameJS.validMove(Math.floor(moveI), moveJ)) {
+    gameJS.makeMove(Math.floor(moveI), moveJ);
+    document.querySelectorAll(".box").forEach(box => {
+      var new_element = box.cloneNode(true);
+      box.parentNode.replaceChild(new_element, box);
+    });
+    const moveBox = document.querySelector("#box" + e.path[1].id.substring(3));
+    moveBox.className = "box-filled";
+    if (gameJS.player === "X") {
+      document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
+        "./assets/O.png";
+    } else {
+      document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
+        "./assets/X.png";
     }
-  });
+    document.querySelectorAll(".active").forEach((active, i) => {
+      active.className = "board";
+    });
+    gameJS.availableMoves().forEach(i => {
+      boardEl = document.querySelector("#board" + (i + 1));
+      boardEl.className = "board active";
+      let boxEl = null;
+      for (var j = 1; j < 10; j++) {
+        boxEl = document.querySelector("#box" + (i * 9 + j));
+        if (boxEl.className !== "box-filled") {
+          document.querySelector("#box" + (i * 9 + j) + " > img").src =
+            "./assets/" + gameJS.player + ".png";
+        }
+        boxEl.addEventListener("click", e => makeMove(e));
+      }
+    });
+  }
 }
 
 

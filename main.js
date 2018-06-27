@@ -44,27 +44,36 @@ function makeMove(e) {
     moveJ = 9;
     moveI -= 1;
   }
-  gameJS.makeMove(Math.floor(moveI), moveJ);
-  document.querySelectorAll(".box").forEach(box => {
-    var new_element = box.cloneNode(true);
-    box.parentNode.replaceChild(new_element, box);
-  });
-  const moveBox = document.querySelector("#box" + e.path[1].id.substring(3));
-  moveBox.className = "box-filled";
-  if (gameJS.player === "X") {
-    document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
-      "./assets/O.png";
-  }
-  document.querySelectorAll(".active").forEach((active, i) => {
-    active.className = "board";
-  });
-  gameJS.availableMoves().forEach(i => {
-    boardEl = document.querySelector("#board" + (i + 1));
-    boardEl.className = "board active";
-    let boxEl = null;
-    for (var j = 1; j < 10; j++) {
-      boxEl = document.querySelector("#box" + (i * 9 + j));
-      boxEl.addEventListener("click", e => makeMove(e));
+  if (gameJS.validMove(Math.floor(moveI), moveJ)) {
+    gameJS.makeMove(Math.floor(moveI), moveJ);
+    document.querySelectorAll(".box").forEach(box => {
+      var new_element = box.cloneNode(true);
+      box.parentNode.replaceChild(new_element, box);
+    });
+    const moveBox = document.querySelector("#box" + e.path[1].id.substring(3));
+    moveBox.className = "box-filled";
+    if (gameJS.player === "X") {
+      document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
+        "./assets/O.png";
+    } else {
+      document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
+        "./assets/X.png";
     }
-  });
+    document.querySelectorAll(".active").forEach((active, i) => {
+      active.className = "board";
+    });
+    gameJS.availableMoves().forEach(i => {
+      boardEl = document.querySelector("#board" + (i + 1));
+      boardEl.className = "board active";
+      let boxEl = null;
+      for (var j = 1; j < 10; j++) {
+        boxEl = document.querySelector("#box" + (i * 9 + j));
+        if (boxEl.className !== "box-filled") {
+          document.querySelector("#box" + (i * 9 + j) + " > img").src =
+            "./assets/" + gameJS.player + ".png";
+        }
+        boxEl.addEventListener("click", e => makeMove(e));
+      }
+    });
+  }
 }

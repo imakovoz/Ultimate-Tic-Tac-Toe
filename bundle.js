@@ -95,7 +95,7 @@
 
 class Board {
   constructor() {
-    this.board = [null, null, null, null, null, null, null, null, null];
+    this.board = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   }
 
   board() {
@@ -107,51 +107,31 @@ class Board {
   }
 
   won() {
-    let response = false;
     if (
-      (this.board[0] === this.board[4] &&
-        this.board[4] === this.board[8] &&
-        this.board[4] !== null) ||
-      (this.board[1] === this.board[4] &&
-        this.board[4] === this.board[7] &&
-        this.board[4] !== null) ||
-      (this.board[2] === this.board[4] &&
-        this.board[4] === this.board[6] &&
-        this.board[4] !== null) ||
-      (this.board[3] === this.board[4] &&
-        this.board[4] === this.board[5] &&
-        this.board[4] !== null)
+      (this.board[0] === this.board[4] && this.board[4] === this.board[8]) ||
+      (this.board[1] === this.board[4] && this.board[4] === this.board[7]) ||
+      (this.board[2] === this.board[4] && this.board[4] === this.board[6]) ||
+      (this.board[3] === this.board[4] && this.board[4] === this.board[5])
     ) {
-      response = this.board[4];
+      return this.board[4];
     } else if (
-      (this.board[6] === this.board[7] &&
-        this.board[6] === this.board[8] &&
-        this.board[6] !== null) ||
-      (this.board[0] === this.board[3] &&
-        this.board[0] === this.board[6] &&
-        this.board[6] !== null)
+      (this.board[6] === this.board[7] && this.board[6] === this.board[8]) ||
+      (this.board[0] === this.board[3] && this.board[0] === this.board[6])
     ) {
-      response = this.board[6];
+      return this.board[6];
     } else if (
-      (this.board[2] === this.board[5] &&
-        this.board[2] === this.board[8] &&
-        this.board[2] !== null) ||
-      (this.board[0] === this.board[1] &&
-        this.board[0] === this.board[2] &&
-        this.board[2] !== null)
+      (this.board[2] === this.board[5] && this.board[2] === this.board[8]) ||
+      (this.board[0] === this.board[1] && this.board[0] === this.board[2])
     ) {
-      response = this.board[0];
-    } else if (this.board.includes(null) === false) {
-      response = "draw";
+      return this.board[2];
+    } else if (
+      this.board.join("").replace(/[0-9]/g, "").length ===
+      this.board.join("").length
+    ) {
+      return "draw";
     } else {
-      response = false;
+      return false;
     }
-    console.log(this.board[2]);
-    console.log(this.board[5]);
-    console.log(this.board[8]);
-    // console.log((this.board[2] === this.board[5]) === this.board[8]);
-    console.log(response);
-    return response;
   }
 }
 
@@ -199,20 +179,61 @@ class Game {
   }
 
   validMove(i, j) {
-    if (this.game[i].board[j - 1]) {
-      return false;
+    // console.log(Number.isInteger("O"));
+    if (Number.isInteger(this.game[i].board[j - 1]) === true) {
+      return true;
     }
-    return true;
+    return false;
   }
 
   makeMove(i, j) {
     this.game[i].makeMove(this.player, j);
+
     if (this.player === "X") {
       this.player = "O";
     } else {
       this.player = "X";
     }
     this.lastMove = j - 1;
+  }
+
+  won() {
+    console.log(this.game[0].won());
+    console.log(this.game[1].won());
+    console.log(this.game[2].won());
+    console.log(this.game[3].won());
+    console.log(this.game[4].won());
+    console.log(this.game[5].won());
+    console.log(this.game[6].won());
+    console.log(this.game[7].won());
+    console.log(this.game[8].won());
+    if (
+      (this.game[0].won() === this.game[1].won() &&
+        this.game[0].won() === this.game[2].won() &&
+        this.game[0].won() !== false) ||
+      (this.game[0].won() === this.game[3].won() &&
+        this.game[0].won() === this.game[6].won() &&
+        this.game[0].won() !== false) ||
+      (this.game[0].won() === this.game[4].won() &&
+        this.game[0].won() === this.game[8].won() &&
+        this.game[0].won() !== false) ||
+      (this.game[1].won() === this.game[4].won() &&
+        this.game[1].won() === this.game[7].won() &&
+        this.game[1].won() !== false) ||
+      (this.game[2].won() === this.game[5].won() &&
+        this.game[8].won() === this.game[2].won() &&
+        this.game[2].won() !== false) ||
+      (this.game[3].won() === this.game[4].won() &&
+        this.game[4].won() === this.game[5].won() &&
+        this.game[3].won() !== false) ||
+      (this.game[6].won() === this.game[7].won() &&
+        this.game[6].won() === this.game[8].won() &&
+        this.game[6].won() !== false)
+    ) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 
@@ -274,6 +295,9 @@ function makeMove(e) {
     moveJ = 9;
     moveI -= 1;
   }
+  console.log(moveI);
+  console.log(moveJ);
+  console.log(gameJS.validMove(Math.floor(moveI), moveJ));
   if (gameJS.validMove(Math.floor(moveI), moveJ)) {
     gameJS.makeMove(Math.floor(moveI), moveJ);
     document.querySelectorAll(".box").forEach(box => {
@@ -282,6 +306,9 @@ function makeMove(e) {
     });
     const moveBox = document.querySelector("#box" + e.path[1].id.substring(3));
     moveBox.className = "box-filled";
+    if (gameJS.won()) {
+      alert("won");
+    }
     if (gameJS.player === "X") {
       document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
         "./assets/O.png";

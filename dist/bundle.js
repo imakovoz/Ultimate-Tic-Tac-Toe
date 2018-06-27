@@ -1,2 +1,342 @@
-!function(e){var t={};function r(o){if(t[o])return t[o].exports;var a=t[o]={i:o,l:!1,exports:{}};return e[o].call(a.exports,a,a.exports,r),a.l=!0,a.exports}r.m=e,r.c=t,r.d=function(e,t,o){r.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:o})},r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},r.t=function(e,t){if(1&t&&(e=r(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var o=Object.create(null);if(r.r(o),Object.defineProperty(o,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var a in e)r.d(o,a,function(t){return e[t]}.bind(null,a));return o},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,"a",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p="",r(r.s=2)}([function(e,t){e.exports=class{constructor(){this.board=[null,null,null,null,null,null,null,null,null]}board(){return this.board}makeMove(e,t){this.board[t-1]=e}won(){return this.board[0]===this.board[4]&&this.board[4]===this.board[8]&&null!==this.board[4]||this.board[1]===this.board[4]&&this.board[4]===this.board[7]&&null!==this.board[4]||this.board[2]===this.board[4]&&this.board[4]===this.board[6]&&null!==this.board[4]||this.board[3]===this.board[4]&&this.board[4]===this.board[5]&&null!==this.board[4]?this.board[4]:this.board[6]===this.board[7]&&this.board[6]===this.board[8]&&null!==this.board[6]||this.board[0]===this.board[3]&&this.board[0]===this.board[6]&&null!==this.board[6]?this.board[6]:this.board[2]===this.board[5]&&this.board[2]===this.board[8]&&null!==this.board[2]||this.board[0]===this.board[1]&&this.board[0]===this.board[2]&&null!==this.board[2]?this.board[0]:!1===this.board.includes(null)&&"draw"}}},function(e,t,r){const o=r(0);e.exports=class{constructor(){this.game=[];let e=null;for(var t=0;t<9;t++)e=new o,this.game.push(e);this.lastMove=null,this.player="X"}availableMoves(){if(null===this.lastMove)return[0,1,2,3,4,5,6,7,8];if(!1===this.game[this.lastMove].won())return[this.lastMove];{let e=[];return this.game.forEach((t,r)=>{!1===t.won()&&e.push(r)}),e}}validMove(e,t){return!this.game[e].board[t-1]}makeMove(e,t){this.game[e].makeMove(this.player,t),"X"===this.player?this.player="O":this.player="X",this.lastMove=t-1}}},function(e,t,r){const o=r(1);function a(e){const t=$("#game").data("game");let r=e.path[1].id.substring(3)/9,o=e.path[1].id.substring(3)%9;if(0===o&&(o=9,r-=1),t.validMove(Math.floor(r),o)){t.makeMove(Math.floor(r),o),document.querySelectorAll(".box").forEach(e=>{var t=e.cloneNode(!0);e.parentNode.replaceChild(t,e)}),document.querySelector("#box"+e.path[1].id.substring(3)).className="box-filled","X"===t.player?document.querySelector("#box"+e.path[1].id.substring(3)+"> img").src="./assets/O.png":document.querySelector("#box"+e.path[1].id.substring(3)+"> img").src="./assets/X.png",document.querySelectorAll(".active").forEach((e,t)=>{e.className="board"}),t.availableMoves().forEach(e=>{boardEl=document.querySelector("#board"+(e+1)),boardEl.className="board active";let r=null;for(var o=1;o<10;o++)"box-filled"!==(r=document.querySelector("#box"+(9*e+o))).className&&(document.querySelector("#box"+(9*e+o)+" > img").src="./assets/"+t.player+".png"),r.addEventListener("click",e=>a(e))})}}document.addEventListener("DOMContentLoaded",function(e){const t=document.querySelector("#game");let r=null,l=null,n=null;for(var s=1;s<10;s++){(r=document.createElement("div")).id="board"+s,r.className="board";for(var i=1;i<10;i++)l=document.createElement("div"),n=document.createElement("img"),l.id="box"+(9*(s-1)+i),l.className="box",n.src="./assets/X.png",l.innerHTML+=n.outerHTML,r.innerHTML+=l.outerHTML;t.innerHTML+=r.outerHTML}document.querySelector("#start-button").addEventListener("click",e=>{let t=new o;$("#game").data("game",t);let r="null";t.availableMoves().forEach(e=>{(r=document.querySelector("#board"+(e+1))).className="board active";let t=null;for(var o=1;o<10;o++)(t=document.querySelector("#box"+(9*e+o))).addEventListener("click",e=>a(e))})})})}]);
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = "./main.js");
+/******/ })
+/************************************************************************/
+/******/ ({
+
+/***/ "./lib/board.js":
+/*!**********************!*\
+  !*** ./lib/board.js ***!
+  \**********************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+class Board {
+  constructor() {
+    this.board = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  }
+
+  board() {
+    return this.board;
+  }
+
+  makeMove(player, position) {
+    this.board[position - 1] = player;
+  }
+
+  won() {
+    if (
+      (this.board[0] === this.board[4] && this.board[4] === this.board[8]) ||
+      (this.board[1] === this.board[4] && this.board[4] === this.board[7]) ||
+      (this.board[2] === this.board[4] && this.board[4] === this.board[6]) ||
+      (this.board[3] === this.board[4] && this.board[4] === this.board[5])
+    ) {
+      return this.board[4];
+    } else if (
+      (this.board[6] === this.board[7] && this.board[6] === this.board[8]) ||
+      (this.board[0] === this.board[3] && this.board[0] === this.board[6])
+    ) {
+      return this.board[6];
+    } else if (
+      (this.board[2] === this.board[5] && this.board[2] === this.board[8]) ||
+      (this.board[0] === this.board[1] && this.board[0] === this.board[2])
+    ) {
+      return this.board[2];
+    } else if (
+      this.board.join("").replace(/[0-9]/g, "").length ===
+      this.board.join("").length
+    ) {
+      return "draw";
+    } else {
+      return false;
+    }
+  }
+}
+
+module.exports = Board;
+
+
+/***/ }),
+
+/***/ "./lib/game.js":
+/*!*********************!*\
+  !*** ./lib/game.js ***!
+  \*********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+const Board = __webpack_require__(/*! ./board.js */ "./lib/board.js");
+
+class Game {
+  constructor() {
+    this.game = [];
+    let board = null;
+    for (var i = 0; i < 9; i++) {
+      board = new Board();
+      this.game.push(board);
+    }
+    this.lastMove = null;
+    this.player = "X";
+  }
+
+  availableMoves() {
+    if (this.lastMove === null) {
+      return [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    }
+    if (this.game[this.lastMove].won() === false) {
+      return [this.lastMove];
+    } else {
+      let arr = [];
+      this.game.forEach((board, i) => {
+        if (board.won() === false) {
+          arr.push(i);
+        }
+      });
+      return arr;
+    }
+  }
+
+  validMove(i, j) {
+    // console.log(Number.isInteger("O"));
+    if (Number.isInteger(this.game[i].board[j - 1]) === true) {
+      return true;
+    }
+    return false;
+  }
+
+  makeMove(i, j) {
+    this.game[i].makeMove(this.player, j);
+
+    if (this.player === "X") {
+      this.player = "O";
+    } else {
+      this.player = "X";
+    }
+    this.lastMove = j - 1;
+  }
+
+  won() {
+    console.log(this.game[0].won());
+    console.log(this.game[1].won());
+    console.log(this.game[2].won());
+    console.log(this.game[3].won());
+    console.log(this.game[4].won());
+    console.log(this.game[5].won());
+    console.log(this.game[6].won());
+    console.log(this.game[7].won());
+    console.log(this.game[8].won());
+    if (
+      (this.game[0].won() === this.game[1].won() &&
+        this.game[0].won() === this.game[2].won() &&
+        this.game[0].won() !== false) ||
+      (this.game[0].won() === this.game[3].won() &&
+        this.game[0].won() === this.game[6].won() &&
+        this.game[0].won() !== false) ||
+      (this.game[0].won() === this.game[4].won() &&
+        this.game[0].won() === this.game[8].won() &&
+        this.game[0].won() !== false) ||
+      (this.game[1].won() === this.game[4].won() &&
+        this.game[1].won() === this.game[7].won() &&
+        this.game[1].won() !== false) ||
+      (this.game[2].won() === this.game[5].won() &&
+        this.game[8].won() === this.game[2].won() &&
+        this.game[2].won() !== false) ||
+      (this.game[3].won() === this.game[4].won() &&
+        this.game[4].won() === this.game[5].won() &&
+        this.game[3].won() !== false) ||
+      (this.game[6].won() === this.game[7].won() &&
+        this.game[6].won() === this.game[8].won() &&
+        this.game[6].won() !== false)
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+module.exports = Game;
+
+
+/***/ }),
+
+/***/ "./main.js":
+/*!*****************!*\
+  !*** ./main.js ***!
+  \*****************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+const Game = __webpack_require__(/*! ./lib/game.js */ "./lib/game.js");
+
+document.addEventListener("DOMContentLoaded", function(event) {
+  const gameHook = document.querySelector("#game");
+  let board = null;
+  let box = null;
+  let div = null;
+  for (var i = 1; i < 10; i++) {
+    board = document.createElement("div");
+    board.id = "board" + i;
+    board.className = "board";
+    for (var j = 1; j < 10; j++) {
+      box = document.createElement("div");
+      div = document.createElement("img");
+      box.id = "box" + ((i - 1) * 9 + j);
+      box.className = "box";
+      div.src = "./assets/X.png";
+      box.innerHTML += div.outerHTML;
+      board.innerHTML += box.outerHTML;
+    }
+    gameHook.innerHTML += board.outerHTML;
+  }
+  document.querySelector("#start-button").addEventListener("click", e => {
+    let game = new Game();
+    $("#game").data("game", game);
+    let boardEl = "null";
+    game.availableMoves().forEach(i => {
+      boardEl = document.querySelector("#board" + (i + 1));
+      boardEl.className = "board active";
+      let boxEl = null;
+      for (var j = 1; j < 10; j++) {
+        boxEl = document.querySelector("#box" + (i * 9 + j));
+        boxEl.addEventListener("click", e => makeMove(e));
+      }
+    });
+  });
+});
+
+function makeMove(e) {
+  const gameJS = $("#game").data("game");
+  let moveI = e.path[1].id.substring(3) / 9;
+  let moveJ = e.path[1].id.substring(3) % 9;
+  if (moveJ === 0) {
+    moveJ = 9;
+    moveI -= 1;
+  }
+  console.log(moveI);
+  console.log(moveJ);
+  console.log(gameJS.validMove(Math.floor(moveI), moveJ));
+  if (gameJS.validMove(Math.floor(moveI), moveJ)) {
+    gameJS.makeMove(Math.floor(moveI), moveJ);
+    document.querySelectorAll(".box").forEach(box => {
+      var new_element = box.cloneNode(true);
+      box.parentNode.replaceChild(new_element, box);
+    });
+    const moveBox = document.querySelector("#box" + e.path[1].id.substring(3));
+    moveBox.className = "box-filled";
+    if (gameJS.won()) {
+      alert("won");
+    }
+    if (gameJS.player === "X") {
+      document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
+        "./assets/O.png";
+    } else {
+      document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
+        "./assets/X.png";
+    }
+    document.querySelectorAll(".active").forEach((active, i) => {
+      active.className = "board";
+    });
+    gameJS.availableMoves().forEach(i => {
+      boardEl = document.querySelector("#board" + (i + 1));
+      boardEl.className = "board active";
+      let boxEl = null;
+      for (var j = 1; j < 10; j++) {
+        boxEl = document.querySelector("#box" + (i * 9 + j));
+        if (boxEl.className !== "box-filled") {
+          document.querySelector("#box" + (i * 9 + j) + " > img").src =
+            "./assets/" + gameJS.player + ".png";
+        }
+        boxEl.addEventListener("click", e => makeMove(e));
+      }
+    });
+  }
+}
+
+
+/***/ })
+
+/******/ });
 //# sourceMappingURL=bundle.js.map

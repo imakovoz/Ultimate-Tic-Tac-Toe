@@ -44,6 +44,9 @@ function makeMove(e) {
     moveJ = 9;
     moveI -= 1;
   }
+  console.log(moveI);
+  console.log(moveJ);
+  console.log(gameJS.validMove(Math.floor(moveI), moveJ));
   if (gameJS.validMove(Math.floor(moveI), moveJ)) {
     gameJS.makeMove(Math.floor(moveI), moveJ);
     document.querySelectorAll(".box").forEach(box => {
@@ -52,6 +55,9 @@ function makeMove(e) {
     });
     const moveBox = document.querySelector("#box" + e.path[1].id.substring(3));
     moveBox.className = "box-filled";
+    if (gameJS.won()) {
+      alert("won");
+    }
     if (gameJS.player === "X") {
       document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
         "./assets/O.png";

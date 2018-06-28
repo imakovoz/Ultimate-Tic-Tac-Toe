@@ -107,18 +107,30 @@ const winArr = [
 class CPU {
   constructor(game) {
     this.moves = this.getGameMoves(game);
-    this.bestMove = { board: null, position: null, value: null };
     this.moveScores = {};
-    this.moves.slice(0, 5).forEach(move => {
+    this.bestMove = null;
+    this.bestScore = null;
+    this.moves.slice(0, 5).forEach((move, x) => {
       let [evalScore, evalMoves, evalGame] = this.dupMove(game, move);
-      console.log(evalScore);
+      // console.log(evalScore);
+      let moveScore = 0;
       // let evalMoves = this.getGameMoves(evalGame);
       evalMoves.slice(0, 1).forEach(eMove => {
         // console.log(eMove);
         let [eScore, eMoves, eGame] = this.dupMove(evalGame, eMove);
-        console.log(eScore);
-        console.log(eGame);
+        // console.log(eGame);
+        [eScore, eMoves, eGame] = this.dupMove(eGame, eMoves[0]);
+        // console.log(eGame);
+        moveScore += eScore;
+        // console.log(eScore);
+        // console.log(eGame);
       });
+      if (moveScore > this.bestScore || this.bestMove === null) {
+        this.bestMove = move.key;
+        this.bestScore = moveScore;
+      }
+      console.log(move);
+      console.log(moveScore);
       // if (this.bestMove.value === null || evalScore > this.bestMove.value) {
       //   this.bestMove.value = evalScore
       //   this.bestMove.board = move.key[0]
@@ -223,7 +235,6 @@ class CPU {
       }
     });
     scoreCount = scoreO + scoreX;
-    debugger;
     return scoreCount;
   }
 
@@ -424,7 +435,7 @@ module.exports = Board;
 const Board = __webpack_require__(/*! ./board.js */ "./lib/board.js");
 
 class Game {
-  constructor() {
+  constructor(player2) {
     this.game = [];
     let board = null;
     for (var i = 0; i < 9; i++) {
@@ -433,6 +444,7 @@ class Game {
     }
     this.lastMove = null;
     this.player = "X";
+    this.opponent = player2;
   }
 
   availableMoves() {
@@ -521,7 +533,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
   setupBoard();
   document.querySelector("#start-button").addEventListener("click", e => {
     setupBoard();
-    let game = new Game();
+    var player2 = document.querySelector("#player2").selectedOptions[0]
+      .textContent;
+    let game = new Game(player2);
     $("#game").data("game", game);
     let boardEl = "null";
     game.availableMoves().forEach(i => {
@@ -580,17 +594,33 @@ function makeMove(e) {
     if (gameJS.won()) {
       alert("won");
     }
-    if (gameJS.player === "X") {
-      document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
-        "./assets/O.png";
-    } else {
-      document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
-        "./assets/X.png";
-    }
     document.querySelectorAll(".active").forEach((active, i) => {
       active.className = "board";
     });
-    let cpu = new CPU(gameJS);
+    if (gameJS.opponent === "CPU" && gameJS.player === "O") {
+      let cpu = new CPU(gameJS);
+      gameJS.makeMove(cpu.bestMove[0], cpu.bestMove[1] + 1);
+      document.querySelector(
+        "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1)
+      ).className =
+        "box-filled";
+      document.querySelector(
+        "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1) + " > img"
+      ).src =
+        "./assets/O.png";
+    } else {
+      if (gameJS.player === "X") {
+        document.querySelector(
+          "#box" + e.path[1].id.substring(3) + "> img"
+        ).src =
+          "./assets/O.png";
+      } else {
+        document.querySelector(
+          "#box" + e.path[1].id.substring(3) + "> img"
+        ).src =
+          "./assets/X.png";
+      }
+    }
     gameJS.availableMoves().forEach(i => {
       boardEl = document.querySelector("#board" + (i + 1));
       boardEl.className = "board active";

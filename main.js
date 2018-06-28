@@ -5,7 +5,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
   setupBoard();
   document.querySelector("#start-button").addEventListener("click", e => {
     setupBoard();
-    let game = new Game();
+    var player2 = document.querySelector("#player2").selectedOptions[0]
+      .textContent;
+    let game = new Game(player2);
     $("#game").data("game", game);
     let boardEl = "null";
     game.availableMoves().forEach(i => {
@@ -64,17 +66,33 @@ function makeMove(e) {
     if (gameJS.won()) {
       alert("won");
     }
-    if (gameJS.player === "X") {
-      document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
-        "./assets/O.png";
-    } else {
-      document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
-        "./assets/X.png";
-    }
     document.querySelectorAll(".active").forEach((active, i) => {
       active.className = "board";
     });
-    let cpu = new CPU(gameJS);
+    if (gameJS.opponent === "CPU" && gameJS.player === "O") {
+      let cpu = new CPU(gameJS);
+      gameJS.makeMove(cpu.bestMove[0], cpu.bestMove[1] + 1);
+      document.querySelector(
+        "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1)
+      ).className =
+        "box-filled";
+      document.querySelector(
+        "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1) + " > img"
+      ).src =
+        "./assets/O.png";
+    } else {
+      if (gameJS.player === "X") {
+        document.querySelector(
+          "#box" + e.path[1].id.substring(3) + "> img"
+        ).src =
+          "./assets/O.png";
+      } else {
+        document.querySelector(
+          "#box" + e.path[1].id.substring(3) + "> img"
+        ).src =
+          "./assets/X.png";
+      }
+    }
     gameJS.availableMoves().forEach(i => {
       boardEl = document.querySelector("#board" + (i + 1));
       boardEl.className = "board active";

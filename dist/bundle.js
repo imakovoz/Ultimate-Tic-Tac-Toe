@@ -106,19 +106,47 @@ const winArr = [
 
 class CPU {
   constructor(game) {
-    this.initGame = Object.assign({}, game);
-    // console.log(this.initGame.game[0]);
-    this.availableGameMoves().forEach(poss => {
-      console.log(this.scoreBoard(this.initGame.game[poss]));
+    this.moves = this.getGameMoves(game);
+
+    this.moveScores = {};
+    this.moves.slice(0, 5).forEach(move => {
+      let evalGame = JSON.parse(JSON.stringify(game));
+      evalGame.game[move.key[0]].board[move.key[1]] = evalGame.player;
+      if (evalGame.player === "O") {
+        evalGame.player = "X";
+      } else {
+        evalGame.player = "O";
+      }
+      evalGame.lastMove = move.key[1];
+      let evalMoves = this.getGameMoves(evalGame);
+      console.log(evalMoves);
+      this.scoreGame(evalGame);
     });
   }
 
-  availableGameMoves() {
-    if (this.boardWon(this.initGame.game[this.initGame.lastMove]) === false) {
-      return [this.initGame.lastMove];
+  getGameMoves(game) {
+    let moves = [];
+    this.availableGameMoves(game).forEach(poss => {
+      let scoreObj = this.scoreBoard(game.game[poss], game.player);
+
+      moves = moves.concat(
+        Object.keys(scoreObj).map(key => {
+          return { key: [poss, parseInt(key)], value: scoreObj[key] };
+        })
+      );
+    });
+    moves.sort(function(p1, p2) {
+      return p2.value - p1.value;
+    });
+    return moves;
+  }
+
+  availableGameMoves(game) {
+    if (this.boardWon(game.game[game.lastMove]) === false) {
+      return [game.lastMove];
     } else {
       let arr = [];
-      this.initGame.game.forEach((board, i) => {
+      game.game.forEach((board, i) => {
         if (this.boardWon(board) === false) {
           arr.push(i);
         }
@@ -138,11 +166,15 @@ class CPU {
     return arr;
   }
 
-  scoreBoard(board) {
+  scoreGame(game) {
+    console.log(game.game[0].board);
+    console.log(this.scoreBoard(game.game[0], game.player));
+  }
+
+  scoreBoard(board, player) {
     const brd = board.board;
     const mvs = this.availableBoardMoves(board);
     let scoreObj = {};
-    console.log(brd);
     mvs.forEach(move => {
       let scoreO = 0;
       let scoreX = 0;
@@ -152,29 +184,37 @@ class CPU {
         win.forEach(i => {
           if (brd[i] === "X") {
             xCount += 1;
-          } else if (brd[i] === "O" || i === move) {
-            // console.log("test");
+          } else if (brd[i] === "O") {
             oCount += 1;
+          } else if (i === move) {
+            if (player === "O") {
+              oCount += 1;
+            } else {
+              xCount += 1;
+            }
           }
         });
         if (xCount === 1 && oCount === 0) {
           scoreX += 1;
         } else if (xCount === 2 && oCount === 0) {
           scoreX += 3;
+        } else if (xCount === 3 && oCount === 0) {
+          scoreX += 16;
         } else if (xCount === 0 && oCount === 1) {
           scoreO += 1;
         } else if (xCount === 0 && oCount === 2) {
           scoreO += 3;
         } else if (xCount === 0 && oCount === 3) {
-          scoreO += 20;
+          scoreO += 16;
         }
       });
-      scoreObj[move] = scoreO - scoreX;
+      if (player === "O") {
+        scoreObj[move] = scoreO - scoreX;
+      } else {
+        scoreObj[move] = scoreX - scoreO;
+      }
     });
-    console.log(scoreObj);
-    return Object.keys(scoreObj).reduce(
-      (a, b) => (scoreObj[a] > scoreObj[b] ? a : b)
-    );
+    return scoreObj;
   }
 
   boardWon(board) {

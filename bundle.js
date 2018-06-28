@@ -112,31 +112,20 @@ class CPU {
     this.bestScore = null;
     this.moves.slice(0, 5).forEach((move, x) => {
       let [evalScore, evalMoves, evalGame] = this.dupMove(game, move);
-      // console.log(evalScore);
       let moveScore = 0;
-      // let evalMoves = this.getGameMoves(evalGame);
       evalMoves.slice(0, 1).forEach(eMove => {
-        // console.log(eMove);
         let [eScore, eMoves, eGame] = this.dupMove(evalGame, eMove);
-        // console.log(eGame);
         [eScore, eMoves, eGame] = this.dupMove(eGame, eMoves[0]);
-        // console.log(eGame);
+        console.log(eScore);
+        console.log(eGame);
         moveScore += eScore;
-        // console.log(eScore);
-        // console.log(eGame);
       });
       if (moveScore > this.bestScore || this.bestMove === null) {
         this.bestMove = move.key;
         this.bestScore = moveScore;
       }
-      console.log(move);
-      console.log(moveScore);
-      // if (this.bestMove.value === null || evalScore > this.bestMove.value) {
-      //   this.bestMove.value = evalScore
-      //   this.bestMove.board = move.key[0]
-      //   this.bestMove.position = move.key[1]
-      // }
     });
+    console.log(this.bestScore);
   }
 
   dupMove(game, move) {
@@ -234,7 +223,7 @@ class CPU {
         scoreO += 16 * multiplier;
       }
     });
-    scoreCount = scoreO + scoreX;
+    scoreCount = scoreO - scoreX;
     return scoreCount;
   }
 

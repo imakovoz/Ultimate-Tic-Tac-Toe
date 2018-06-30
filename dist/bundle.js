@@ -107,28 +107,74 @@ const winArr = [
 class CPU {
   constructor(game) {
     this.moves = this.getGameMoves(game);
-
     this.moveScores = {};
-    this.moves.slice(0, 5).forEach(move => {
-      let evalGame = JSON.parse(JSON.stringify(game));
-      evalGame.game[move.key[0]].board[move.key[1]] = evalGame.player;
+    this.bestMove = null;
+    this.bestScore = null;
+    this.moves.slice(0, 5).forEach((move, x) => {
+      let [evalScore, evalMoves, evalGame] = this.dupeMove(game, move);
+      let moveScore = 0;
+      if (evalScore === "won") {
+        moveScore = 100;
+      } else {
+        evalMoves
+          .slice(evalMoves.length - 5, evalMoves.length)
+          .forEach(eMove => {
+            let [eScore, eMoves, eGame] = this.dupMove(evalGame, eMove);
+            if (eScore === "won") {
+              moveScore = -100;
+            } else {
+              eMoves.slice(0, 5).forEach(eMove1 => {
+                [eScore, eMoves, eGame] = this.dupMove(eGame, eMove1);
+                if (eScore > moveScore) {
+                  moveScore = eScore;
+                }
+              });
+            }
+          });
+      }
+      if (moveScore > this.bestScore || this.bestMove === null) {
+        this.bestMove = move.key;
+        this.bestScore = moveScore;
+      }
+    });
+  }
+
+  dupMove(game, move) {
+    let evalGame = JSON.parse(JSON.stringify(game));
+    evalGame.game[move.key[0]].board[move.key[1]] = evalGame.player;
+    if (evalGame.player === "O") {
+      evalGame.player = "X";
+    } else {
+      evalGame.player = "O";
+    }
+    evalGame.lastMove = move.key[1];
+    let evalScore = this.scoreGame(evalGame);
+    let evalMoves = this.getGameMoves(evalGame);
+    return [evalScore, evalMoves, evalGame];
+  }
+
+  dupeMove(game, move) {
+    let evalGame = JSON.parse(JSON.stringify(game));
+    evalGame.game[move.key[0]].board[move.key[1]] = evalGame.player;
+    if (this.boardWon(evalGame.game[move.key[0]])) {
+      return ["won", "the", "board"];
+    } else {
       if (evalGame.player === "O") {
         evalGame.player = "X";
       } else {
         evalGame.player = "O";
       }
       evalGame.lastMove = move.key[1];
+      let evalScore = this.scoreGame(evalGame);
       let evalMoves = this.getGameMoves(evalGame);
-      console.log(evalMoves);
-      this.scoreGame(evalGame);
-    });
+      return [evalScore, evalMoves, evalGame];
+    }
   }
 
   getGameMoves(game) {
     let moves = [];
     this.availableGameMoves(game).forEach(poss => {
       let scoreObj = this.scoreBoard(game.game[poss], game.player);
-
       moves = moves.concat(
         Object.keys(scoreObj).map(key => {
           return { key: [poss, parseInt(key)], value: scoreObj[key] };
@@ -167,15 +213,119 @@ class CPU {
   }
 
   scoreGame(game) {
-    console.log(game.game[0].board);
-    console.log(this.scoreBoard(game.game[0], game.player));
+    let boards = [];
+    game.game.forEach(board => {
+      boards.push(this.evalBoard(board, game.player) / 16);
+    });
+    return this.evalGame(boards);
+  }
+
+  evalGame(boards) {
+    let scoreO = 0;
+    let scoreX = 0;
+    let scoreCount = 0;
+    winArr.forEach((win, j) => {
+      let xCount = 0;
+      let oCount = 0;
+      let multiplierX = 0;
+      let multiplierO = 0;
+      win.forEach(i => {
+        if (boards[i] === 1) {
+          multiplierO = 5;
+        } else if (boards[i] === -1) {
+          multiplierX = 5;
+        } else if (boards[i] < 0) {
+          multiplierX += boards[i];
+          xCount += 1;
+        } else if (boards[i] > 0) {
+          multiplierO += boards[i];
+          oCount += 1;
+        }
+      });
+      if (multiplierO > 4 || multiplierX > 4) {
+        scoreX = 0;
+        scoreO = 0;
+      } else if (multiplierO > 4) {
+        scoreX = 0;
+      } else if (multiplierX > 4) {
+        scoreO = 0;
+      } else if (xCount === 1 && oCount === 0) {
+        scoreX += 1 * multiplierX;
+      } else if (xCount === 2 && oCount === 0) {
+        scoreX += 3 * multiplierX / 2;
+      } else if (xCount === 3 && oCount === 0) {
+        scoreX += 16 * multiplierX / 3;
+      } else if (xCount === 0 && oCount === 1) {
+        scoreO += 1 * multiplierO;
+      } else if (xCount === 0 && oCount === 2) {
+        scoreO += 3 * multiplierO / 2;
+      } else if (xCount === 0 && oCount === 3) {
+        scoreO += 16 * multiplierO / 3;
+      } else if (xCount === 1 && oCount === 1) {
+        scoreO += 1 * multiplierO;
+        scoreX += 1 * multiplierX;
+      } else if (xCount === 1 && oCount === 2) {
+        scoreO += 3 * multiplierO / 2;
+        scoreX += 1 * multiplierX;
+      } else if (xCount === 1 && oCount === 3) {
+        scoreO += 16 * multiplierO / 3;
+        scoreX += 1 * multiplierX;
+      } else if (xCount === 2 && oCount === 1) {
+        scoreO += 1 * multiplierO;
+        scoreX += 3 * multiplierX / 2;
+      } else if (xCount === 3 && oCount === 1) {
+        scoreO += 1 * multiplierO;
+        scoreX += 16 * multiplierX / 3;
+      }
+    });
+    scoreCount = scoreO + scoreX;
+    return scoreCount;
+  }
+
+  evalBoard(board) {
+    const brd = board.board;
+    let scoreO = 0;
+    let scoreX = 0;
+    let scoreCount = 0;
+    winArr.forEach((win, j) => {
+      let xCount = 0;
+      let oCount = 0;
+      win.forEach(i => {
+        if (brd[i] === "X") {
+          xCount += 1;
+        } else if (brd[i] === "O") {
+          oCount += 1;
+        }
+      });
+      if (xCount === 1 && oCount === 0) {
+        scoreX += 1;
+      } else if (xCount === 2 && oCount === 0) {
+        scoreX += 3;
+      } else if (xCount === 3 && oCount === 0) {
+        scoreX += 1600;
+      } else if (xCount === 0 && oCount === 1) {
+        scoreO += 1;
+      } else if (xCount === 0 && oCount === 2) {
+        scoreO += 3;
+      } else if (xCount === 0 && oCount === 3) {
+        scoreO += 1600;
+      }
+    });
+    if (scoreO > 1000) {
+      scoreCount = 16;
+    } else if (scoreX > 1000) {
+      scoreCount = -16;
+    } else {
+      scoreCount = parseFloat(scoreO) - parseFloat(scoreX);
+    }
+    return scoreCount;
   }
 
   scoreBoard(board, player) {
     const brd = board.board;
     const mvs = this.availableBoardMoves(board);
     let scoreObj = {};
-    mvs.forEach(move => {
+    mvs.some(move => {
       let scoreO = 0;
       let scoreX = 0;
       winArr.forEach((win, j) => {
@@ -199,13 +349,27 @@ class CPU {
         } else if (xCount === 2 && oCount === 0) {
           scoreX += 3;
         } else if (xCount === 3 && oCount === 0) {
-          scoreX += 16;
+          scoreX = 16;
+          scoreO = 0;
+          if (player === "O") {
+            scoreObj[move] = scoreO - scoreX;
+          } else {
+            scoreObj[move] = scoreX - scoreO;
+          }
+          return true;
         } else if (xCount === 0 && oCount === 1) {
           scoreO += 1;
         } else if (xCount === 0 && oCount === 2) {
           scoreO += 3;
         } else if (xCount === 0 && oCount === 3) {
-          scoreO += 16;
+          scoreO = 16;
+          scoreX = 0;
+          if (player === "O") {
+            scoreObj[move] = scoreO - scoreX;
+          } else {
+            scoreObj[move] = scoreX - scoreO;
+          }
+          return true;
         }
       });
       if (player === "O") {
@@ -315,7 +479,7 @@ module.exports = Board;
 const Board = __webpack_require__(/*! ./board.js */ "./lib/board.js");
 
 class Game {
-  constructor() {
+  constructor(player2) {
     this.game = [];
     let board = null;
     for (var i = 0; i < 9; i++) {
@@ -324,6 +488,7 @@ class Game {
     }
     this.lastMove = null;
     this.player = "X";
+    this.opponent = player2;
   }
 
   availableMoves() {
@@ -360,6 +525,9 @@ class Game {
       this.player = "X";
     }
     this.lastMove = j - 1;
+    if (this.game[i].won() !== "draw" && this.game[i].won() !== false) {
+      return "won";
+    }
   }
 
   won() {
@@ -412,7 +580,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
   setupBoard();
   document.querySelector("#start-button").addEventListener("click", e => {
     setupBoard();
-    let game = new Game();
+    var player2 = document.querySelector("#player2").selectedOptions[0]
+      .textContent;
+    let game = new Game(player2);
     $("#game").data("game", game);
     let boardEl = "null";
     game.availableMoves().forEach(i => {
@@ -461,40 +631,79 @@ function makeMove(e) {
     moveI -= 1;
   }
   if (gameJS.validMove(Math.floor(moveI), moveJ)) {
-    gameJS.makeMove(Math.floor(moveI), moveJ);
+    let test = gameJS.makeMove(Math.floor(moveI), moveJ);
     document.querySelectorAll(".box").forEach(box => {
       var new_element = box.cloneNode(true);
       box.parentNode.replaceChild(new_element, box);
     });
     const moveBox = document.querySelector("#box" + e.path[1].id.substring(3));
     moveBox.className = "box-filled";
-    if (gameJS.won()) {
-      alert("won");
-    }
-    if (gameJS.player === "X") {
-      document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
-        "./assets/O.png";
-    } else {
-      document.querySelector("#box" + e.path[1].id.substring(3) + "> img").src =
-        "./assets/X.png";
-    }
     document.querySelectorAll(".active").forEach((active, i) => {
       active.className = "board";
     });
-    let cpu = new CPU(gameJS);
-    gameJS.availableMoves().forEach(i => {
-      boardEl = document.querySelector("#board" + (i + 1));
-      boardEl.className = "board active";
-      let boxEl = null;
-      for (var j = 1; j < 10; j++) {
-        boxEl = document.querySelector("#box" + (i * 9 + j));
-        if (boxEl.className !== "box-filled") {
-          document.querySelector("#box" + (i * 9 + j) + " > img").src =
-            "./assets/" + gameJS.player + ".png";
-        }
-        boxEl.addEventListener("click", e => makeMove(e));
+    if (test === "won") {
+      let wonEl = document.createElement("img");
+      if (gameJS.player === "X") {
+        wonEl.src = "./assets/O.png";
+      } else {
+        wonEl.src = "./assets/X.png";
       }
-    });
+      document.querySelector("#board" + (Math.floor(moveI) + 1)).innerHTML =
+        wonEl.outerHTML;
+    }
+    if (
+      gameJS.opponent === "CPU" &&
+      gameJS.player === "O" &&
+      gameJS.won() === false
+    ) {
+      let cpu = new CPU(gameJS);
+      let test1 = gameJS.makeMove(cpu.bestMove[0], cpu.bestMove[1] + 1);
+      document.querySelector(
+        "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1)
+      ).className =
+        "box-filled last";
+      document.querySelector(
+        "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1) + " > img"
+      ).src =
+        "./assets/O.png";
+      if (test1 === "won") {
+        let wonEl = document.createElement("img");
+        wonEl.src = "./assets/O.png";
+        wonEl.height = "100";
+        wonEl.width = "100";
+        document.querySelector("#board" + (cpu.bestMove[0] + 1)).innerHTML =
+          wonEl.outerHTML;
+      }
+    } else {
+      if (gameJS.player === "X") {
+        document.querySelector(
+          "#box" + e.path[1].id.substring(3) + "> img"
+        ).src =
+          "./assets/O.png";
+      } else {
+        document.querySelector(
+          "#box" + e.path[1].id.substring(3) + "> img"
+        ).src =
+          "./assets/X.png";
+      }
+    }
+    if (gameJS.won()) {
+      alert("Game Over");
+    } else {
+      gameJS.availableMoves().forEach(i => {
+        boardEl = document.querySelector("#board" + (i + 1));
+        boardEl.className = "board active";
+        let boxEl = null;
+        for (var j = 1; j < 10; j++) {
+          boxEl = document.querySelector("#box" + (i * 9 + j));
+          if (boxEl.className !== "box-filled") {
+            document.querySelector("#box" + (i * 9 + j) + " > img").src =
+              "./assets/" + gameJS.player + ".png";
+          }
+          boxEl.addEventListener("click", e => makeMove(e));
+        }
+      });
+    }
   }
 }
 

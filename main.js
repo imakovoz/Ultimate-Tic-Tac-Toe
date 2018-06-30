@@ -81,6 +81,11 @@ function makeMove(e) {
       gameJS.player === "O" &&
       gameJS.won() === false
     ) {
+      if (gameJS.lastCPU !== null) {
+        document.querySelectorAll("#box" + gameJS.lastCPU).forEach(el => {
+          el.style.backgroundColor = "inherit";
+        });
+      }
       let cpu = new CPU(gameJS);
       let test1 = gameJS.makeMove(cpu.bestMove[0], cpu.bestMove[1] + 1);
       document.querySelector(
@@ -88,9 +93,14 @@ function makeMove(e) {
       ).className =
         "box-filled";
       document.querySelector(
+        "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1)
+      ).style.backgroundColor =
+        "#709fb0";
+      document.querySelector(
         "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1) + " > img"
       ).src =
         "./assets/O.png";
+      gameJS.lastCPU = cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1;
       if (test1 === "won") {
         let wonEl = document.createElement("img");
         wonEl.src = "./assets/O.png";

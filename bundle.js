@@ -111,21 +111,32 @@ class CPU {
     this.bestMove = null;
     this.bestScore = null;
     this.moves.slice(0, 5).forEach((move, x) => {
-      let [evalScore, evalMoves, evalGame] = this.dupMove(game, move);
+      let [evalScore, evalMoves, evalGame] = this.dupeMove(game, move);
       let moveScore = 0;
-      evalMoves.slice(0, 1).forEach(eMove => {
-        let [eScore, eMoves, eGame] = this.dupMove(evalGame, eMove);
-        [eScore, eMoves, eGame] = this.dupMove(eGame, eMoves[0]);
-        console.log(eScore);
-        console.log(eGame);
-        moveScore += eScore;
-      });
+      if (evalScore === "won") {
+        moveScore = 100;
+      } else {
+        evalMoves
+          .slice(evalMoves.length - 5, evalMoves.length)
+          .forEach(eMove => {
+            let [eScore, eMoves, eGame] = this.dupMove(evalGame, eMove);
+            if (eScore === "won") {
+              moveScore = -100;
+            } else {
+              eMoves.slice(0, 5).forEach(eMove1 => {
+                [eScore, eMoves, eGame] = this.dupMove(eGame, eMove1);
+                if (eScore > moveScore) {
+                  moveScore = eScore;
+                }
+              });
+            }
+          });
+      }
       if (moveScore > this.bestScore || this.bestMove === null) {
         this.bestMove = move.key;
         this.bestScore = moveScore;
       }
     });
-    console.log(this.bestScore);
   }
 
   dupMove(game, move) {
@@ -140,6 +151,24 @@ class CPU {
     let evalScore = this.scoreGame(evalGame);
     let evalMoves = this.getGameMoves(evalGame);
     return [evalScore, evalMoves, evalGame];
+  }
+
+  dupeMove(game, move) {
+    let evalGame = JSON.parse(JSON.stringify(game));
+    evalGame.game[move.key[0]].board[move.key[1]] = evalGame.player;
+    if (this.boardWon(evalGame.game[move.key[0]])) {
+      return ["won", "the", "board"];
+    } else {
+      if (evalGame.player === "O") {
+        evalGame.player = "X";
+      } else {
+        evalGame.player = "O";
+      }
+      evalGame.lastMove = move.key[1];
+      let evalScore = this.scoreGame(evalGame);
+      let evalMoves = this.getGameMoves(evalGame);
+      return [evalScore, evalMoves, evalGame];
+    }
   }
 
   getGameMoves(game) {
@@ -188,7 +217,6 @@ class CPU {
     game.game.forEach(board => {
       boards.push(this.evalBoard(board, game.player) / 16);
     });
-    // console.log(boards);
     return this.evalGame(boards);
   }
 
@@ -199,31 +227,58 @@ class CPU {
     winArr.forEach((win, j) => {
       let xCount = 0;
       let oCount = 0;
-      let multiplier = 0;
+      let multiplierX = 0;
+      let multiplierO = 0;
       win.forEach(i => {
-        multiplier += boards[i];
-        if (boards[i] < 0) {
+        if (boards[i] === 1) {
+          multiplierO = 5;
+        } else if (boards[i] === -1) {
+          multiplierX = 5;
+        } else if (boards[i] < 0) {
+          multiplierX += boards[i];
           xCount += 1;
         } else if (boards[i] > 0) {
+          multiplierO += boards[i];
           oCount += 1;
         }
       });
-      multiplier /= 3;
-      if (xCount === 1 && oCount === 0) {
-        scoreX += 1 * multiplier;
+      if (multiplierO > 4 || multiplierX > 4) {
+        scoreX = 0;
+        scoreO = 0;
+      } else if (multiplierO > 4) {
+        scoreX = 0;
+      } else if (multiplierX > 4) {
+        scoreO = 0;
+      } else if (xCount === 1 && oCount === 0) {
+        scoreX += 1 * multiplierX;
       } else if (xCount === 2 && oCount === 0) {
-        scoreX += 3 * multiplier;
+        scoreX += 3 * multiplierX / 2;
       } else if (xCount === 3 && oCount === 0) {
-        scoreX += 16 * multiplier;
+        scoreX += 16 * multiplierX / 3;
       } else if (xCount === 0 && oCount === 1) {
-        scoreO += 1 * multiplier;
+        scoreO += 1 * multiplierO;
       } else if (xCount === 0 && oCount === 2) {
-        scoreO += 3 * multiplier;
+        scoreO += 3 * multiplierO / 2;
       } else if (xCount === 0 && oCount === 3) {
-        scoreO += 16 * multiplier;
+        scoreO += 16 * multiplierO / 3;
+      } else if (xCount === 1 && oCount === 1) {
+        scoreO += 1 * multiplierO;
+        scoreX += 1 * multiplierX;
+      } else if (xCount === 1 && oCount === 2) {
+        scoreO += 3 * multiplierO / 2;
+        scoreX += 1 * multiplierX;
+      } else if (xCount === 1 && oCount === 3) {
+        scoreO += 16 * multiplierO / 3;
+        scoreX += 1 * multiplierX;
+      } else if (xCount === 2 && oCount === 1) {
+        scoreO += 1 * multiplierO;
+        scoreX += 3 * multiplierX / 2;
+      } else if (xCount === 3 && oCount === 1) {
+        scoreO += 1 * multiplierO;
+        scoreX += 16 * multiplierX / 3;
       }
     });
-    scoreCount = scoreO - scoreX;
+    scoreCount = scoreO + scoreX;
     return scoreCount;
   }
 
@@ -241,27 +296,27 @@ class CPU {
         } else if (brd[i] === "O") {
           oCount += 1;
         }
-        if (xCount === 1 && oCount === 0) {
-          scoreX += 1;
-        } else if (xCount === 2 && oCount === 0) {
-          scoreX += 3;
-        } else if (xCount === 3 && oCount === 0) {
-          scoreX += 1600;
-        } else if (xCount === 0 && oCount === 1) {
-          scoreO += 1;
-        } else if (xCount === 0 && oCount === 2) {
-          scoreO += 3;
-        } else if (xCount === 0 && oCount === 3) {
-          scoreO += 1600;
-        }
       });
+      if (xCount === 1 && oCount === 0) {
+        scoreX += 1;
+      } else if (xCount === 2 && oCount === 0) {
+        scoreX += 3;
+      } else if (xCount === 3 && oCount === 0) {
+        scoreX += 1600;
+      } else if (xCount === 0 && oCount === 1) {
+        scoreO += 1;
+      } else if (xCount === 0 && oCount === 2) {
+        scoreO += 3;
+      } else if (xCount === 0 && oCount === 3) {
+        scoreO += 1600;
+      }
     });
     if (scoreO > 1000) {
       scoreCount = 16;
     } else if (scoreX > 1000) {
       scoreCount = -16;
     } else {
-      scoreCount = scoreO - scoreX;
+      scoreCount = parseFloat(scoreO) - parseFloat(scoreX);
     }
     return scoreCount;
   }
@@ -470,6 +525,9 @@ class Game {
       this.player = "X";
     }
     this.lastMove = j - 1;
+    if (this.game[i].won() !== "draw" && this.game[i].won() !== false) {
+      return "won";
+    }
   }
 
   won() {
@@ -573,22 +631,33 @@ function makeMove(e) {
     moveI -= 1;
   }
   if (gameJS.validMove(Math.floor(moveI), moveJ)) {
-    gameJS.makeMove(Math.floor(moveI), moveJ);
+    let test = gameJS.makeMove(Math.floor(moveI), moveJ);
     document.querySelectorAll(".box").forEach(box => {
       var new_element = box.cloneNode(true);
       box.parentNode.replaceChild(new_element, box);
     });
     const moveBox = document.querySelector("#box" + e.path[1].id.substring(3));
     moveBox.className = "box-filled";
-    if (gameJS.won()) {
-      alert("won");
-    }
     document.querySelectorAll(".active").forEach((active, i) => {
       active.className = "board";
     });
-    if (gameJS.opponent === "CPU" && gameJS.player === "O") {
+    if (test === "won") {
+      let wonEl = document.createElement("img");
+      if (gameJS.player === "X") {
+        wonEl.src = "./assets/O.png";
+      } else {
+        wonEl.src = "./assets/X.png";
+      }
+      document.querySelector("#board" + (Math.floor(moveI) + 1)).innerHTML =
+        wonEl.outerHTML;
+    }
+    if (
+      gameJS.opponent === "CPU" &&
+      gameJS.player === "O" &&
+      gameJS.won() === false
+    ) {
       let cpu = new CPU(gameJS);
-      gameJS.makeMove(cpu.bestMove[0], cpu.bestMove[1] + 1);
+      let test1 = gameJS.makeMove(cpu.bestMove[0], cpu.bestMove[1] + 1);
       document.querySelector(
         "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1)
       ).className =
@@ -597,6 +666,14 @@ function makeMove(e) {
         "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1) + " > img"
       ).src =
         "./assets/O.png";
+      if (test1 === "won") {
+        let wonEl = document.createElement("img");
+        wonEl.src = "./assets/O.png";
+        wonEl.height = "100";
+        wonEl.width = "100";
+        document.querySelector("#board" + (cpu.bestMove[0] + 1)).innerHTML =
+          wonEl.outerHTML;
+      }
     } else {
       if (gameJS.player === "X") {
         document.querySelector(
@@ -610,19 +687,23 @@ function makeMove(e) {
           "./assets/X.png";
       }
     }
-    gameJS.availableMoves().forEach(i => {
-      boardEl = document.querySelector("#board" + (i + 1));
-      boardEl.className = "board active";
-      let boxEl = null;
-      for (var j = 1; j < 10; j++) {
-        boxEl = document.querySelector("#box" + (i * 9 + j));
-        if (boxEl.className !== "box-filled") {
-          document.querySelector("#box" + (i * 9 + j) + " > img").src =
-            "./assets/" + gameJS.player + ".png";
+    if (gameJS.won()) {
+      alert("Game Over");
+    } else {
+      gameJS.availableMoves().forEach(i => {
+        boardEl = document.querySelector("#board" + (i + 1));
+        boardEl.className = "board active";
+        let boxEl = null;
+        for (var j = 1; j < 10; j++) {
+          boxEl = document.querySelector("#box" + (i * 9 + j));
+          if (boxEl.className !== "box-filled") {
+            document.querySelector("#box" + (i * 9 + j) + " > img").src =
+              "./assets/" + gameJS.player + ".png";
+          }
+          boxEl.addEventListener("click", e => makeMove(e));
         }
-        boxEl.addEventListener("click", e => makeMove(e));
-      }
-    });
+      });
+    }
   }
 }
 

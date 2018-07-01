@@ -1,5 +1,5 @@
 const Game = require("./lib/game.js");
-const CPU = require("./lib/CPU.js");
+const CPU = require("./lib/CPU1.js");
 
 document.addEventListener("DOMContentLoaded", function(event) {
   setupBoard();

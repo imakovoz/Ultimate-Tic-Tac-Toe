@@ -86,10 +86,10 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "./lib/CPU.js":
-/*!********************!*\
-  !*** ./lib/CPU.js ***!
-  \********************/
+/***/ "./lib/CPU1.js":
+/*!*********************!*\
+  !*** ./lib/CPU1.js ***!
+  \*********************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
@@ -106,83 +106,158 @@ const winArr = [
 
 class CPU {
   constructor(game) {
-    this.moves = this.getGameMoves(game);
-    this.moveScores = {};
+    this.game = game;
+    this.moves = this.availableMoves(game);
     this.bestMove = null;
-    this.bestScore = null;
-    this.moves.slice(0, 5).forEach((move, x) => {
-      let [evalScore, evalMoves, evalGame] = this.dupeMove(game, move);
-      let moveScore = 0;
-      if (evalScore === "won") {
-        moveScore = 100;
-      } else {
-        evalMoves
-          .slice(evalMoves.length - 5, evalMoves.length)
-          .forEach(eMove => {
-            let [eScore, eMoves, eGame] = this.dupMove(evalGame, eMove);
-            if (eScore === "won") {
-              moveScore = -100;
-            } else {
-              eMoves.slice(0, 5).forEach(eMove1 => {
-                [eScore, eMoves, eGame] = this.dupMove(eGame, eMove1);
-                if (eScore > moveScore) {
-                  moveScore = eScore;
-                }
-              });
-            }
+    this.bestScore = Number.MAX_SAFE_INTEGER * -1;
+    if (this.moves.length > 20) {
+      this.moves = this.moves.sort((a, b) => {
+        return b[0] - a[0];
+      });
+      this.moves = this.moves.slice(0, 20);
+    }
+    this.moves.forEach(move => {
+      let evalGame = this.dupMove(game, move);
+      let arr2 = [];
+      if (evalGame[1].length > 20) {
+        evalGame[1] = evalGame[1].sort((a, b) => {
+          return b[0] - a[0];
+        });
+        evalGame[1] = evalGame[1].slice(0, 20);
+      }
+      evalGame[1].forEach(newMove => {
+        let eGame = this.dupMove(evalGame[2], newMove);
+        let arr1 = [];
+        // write if opponent wins to break early
+        eGame[1].forEach(nMove => {
+          let eGame1 = this.dupMove(evalGame[2], newMove);
+          let arr = [];
+          eGame1[1].forEach(nMove1 => {
+            arr.push(this.dupMove(eGame1[2], nMove1));
           });
+          arr = arr.sort((a, b) => {
+            return b[0] - a[0];
+          });
+          arr1.push(arr[0][0]);
+          // arr[0] represents best move for CPU after x moves
+        });
+        arr1 = arr1.sort((a, b) => {
+          return a - b;
+        });
+        arr2.push(arr1[0]);
+      });
+      arr2 = arr2.sort((a, b) => {
+        return a - b;
+      });
+      if (arr2[0] > this.bestScore) {
+        this.bestScore = arr2[0][0];
+        this.bestMove = move;
       }
-      if (moveScore > this.bestScore || this.bestMove === null) {
-        this.bestMove = move.key;
-        this.bestScore = moveScore;
-      }
+      // check if better than current best
     });
   }
 
   dupMove(game, move) {
     let evalGame = JSON.parse(JSON.stringify(game));
-    evalGame.game[move.key[0]].board[move.key[1]] = evalGame.player;
+    evalGame.game[move[0]].board[move[1]] = evalGame.player;
     if (evalGame.player === "O") {
       evalGame.player = "X";
     } else {
       evalGame.player = "O";
     }
-    evalGame.lastMove = move.key[1];
+    evalGame.lastMove = move[1];
     let evalScore = this.scoreGame(evalGame);
-    let evalMoves = this.getGameMoves(evalGame);
-    return [evalScore, evalMoves, evalGame];
+    let evalMoves = this.availableMoves(evalGame);
+    return [evalScore, evalMoves, evalGame, move];
   }
 
-  dupeMove(game, move) {
-    let evalGame = JSON.parse(JSON.stringify(game));
-    evalGame.game[move.key[0]].board[move.key[1]] = evalGame.player;
-    if (this.boardWon(evalGame.game[move.key[0]])) {
-      return ["won", "the", "board"];
-    } else {
-      if (evalGame.player === "O") {
-        evalGame.player = "X";
-      } else {
-        evalGame.player = "O";
+  scoreGame(game) {
+    // debugger;
+    const brds = game.game;
+    let xScore = 0;
+    let oScore = 0;
+    for (var i = 0; i < winArr.length; i++) {
+      let xCount = 0;
+      let oCount = 0;
+      let xWin = 0;
+      let oWin = 0;
+      winArr[i].forEach(pos => {
+        const score = this.scoreBoard(brds[pos].board);
+
+        if (score < 0) {
+          xCount += score / -16;
+          if (score === -1) {
+            xCount += 1;
+            xWin += 1;
+          }
+        } else if (score > 0) {
+          oCount += score / 16;
+          if (score === 1) {
+            oCount += 1;
+            oWin += 1;
+          }
+        }
+      });
+      if (xWin >= 1 && oWin >= 1) {
+        break;
+      } else if (xWin === 3) {
+        xScore = 100;
+        oScore = 0;
+        break;
+      } else if (oWin === 3) {
+        oScore = 100;
+        xScore = 0;
+        break;
+      } else if (oCount >= xCount) {
+        oScore += oCount - xCount;
+      } else if (oCount < xCount) {
+        xScore += xCount - oCount;
       }
-      evalGame.lastMove = move.key[1];
-      let evalScore = this.scoreGame(evalGame);
-      let evalMoves = this.getGameMoves(evalGame);
-      return [evalScore, evalMoves, evalGame];
     }
+    return oScore - xScore;
   }
 
-  getGameMoves(game) {
+  scoreBoard(board) {
+    let xScore = 0;
+    let oScore = 0;
+    for (var i = 0; i < winArr.length; i++) {
+      let xCount = 0;
+      let oCount = 0;
+      winArr[i].forEach(pos => {
+        if (board[pos] === "X") {
+          xCount += 1;
+        } else if (board[pos] === "O") {
+          oCount += 1;
+        }
+      });
+      if (xCount === 1 && oCount === 0) {
+        xScore += 1;
+      } else if (xCount === 2 && oCount === 0) {
+        xScore += 3;
+      } else if (xCount === 3 && oCount === 0) {
+        xScore = 16;
+        oScore = 0;
+        break;
+      } else if (oCount === 1 && xCount === 0) {
+        oScore += 1;
+      } else if (oCount === 2 && xCount === 0) {
+        oScore += 3;
+      } else if (oCount === 3 && xCount === 0) {
+        oScore = 16;
+        xScore = 0;
+        break;
+      }
+    }
+    return oScore - xScore;
+  }
+
+  availableMoves(game) {
     let moves = [];
-    this.availableGameMoves(game).forEach(poss => {
-      let scoreObj = this.scoreBoard(game.game[poss], game.player);
-      moves = moves.concat(
-        Object.keys(scoreObj).map(key => {
-          return { key: [poss, parseInt(key)], value: scoreObj[key] };
-        })
-      );
-    });
-    moves.sort(function(p1, p2) {
-      return p2.value - p1.value;
+    this.availableGameMoves(game).forEach(board => {
+      let x = this.availableBoardMoves(game.game[board]).map(el => {
+        return [board, el];
+      });
+      moves = moves.concat(x);
     });
     return moves;
   }
@@ -210,175 +285,6 @@ class CPU {
       }
     });
     return arr;
-  }
-
-  scoreGame(game) {
-    let boards = [];
-    game.game.forEach(board => {
-      boards.push(this.evalBoard(board, game.player) / 16);
-    });
-    return this.evalGame(boards);
-  }
-
-  evalGame(boards) {
-    let scoreO = 0;
-    let scoreX = 0;
-    let scoreCount = 0;
-    winArr.forEach((win, j) => {
-      let xCount = 0;
-      let oCount = 0;
-      let multiplierX = 0;
-      let multiplierO = 0;
-      win.forEach(i => {
-        if (boards[i] === 1) {
-          multiplierO = 5;
-        } else if (boards[i] === -1) {
-          multiplierX = 5;
-        } else if (boards[i] < 0) {
-          multiplierX += boards[i];
-          xCount += 1;
-        } else if (boards[i] > 0) {
-          multiplierO += boards[i];
-          oCount += 1;
-        }
-      });
-      if (multiplierO > 4 || multiplierX > 4) {
-        scoreX = 0;
-        scoreO = 0;
-      } else if (multiplierO > 4) {
-        scoreX = 0;
-      } else if (multiplierX > 4) {
-        scoreO = 0;
-      } else if (xCount === 1 && oCount === 0) {
-        scoreX += 1 * multiplierX;
-      } else if (xCount === 2 && oCount === 0) {
-        scoreX += 3 * multiplierX / 2;
-      } else if (xCount === 3 && oCount === 0) {
-        scoreX += 16 * multiplierX / 3;
-      } else if (xCount === 0 && oCount === 1) {
-        scoreO += 1 * multiplierO;
-      } else if (xCount === 0 && oCount === 2) {
-        scoreO += 3 * multiplierO / 2;
-      } else if (xCount === 0 && oCount === 3) {
-        scoreO += 16 * multiplierO / 3;
-      } else if (xCount === 1 && oCount === 1) {
-        scoreO += 1 * multiplierO;
-        scoreX += 1 * multiplierX;
-      } else if (xCount === 1 && oCount === 2) {
-        scoreO += 3 * multiplierO / 2;
-        scoreX += 1 * multiplierX;
-      } else if (xCount === 1 && oCount === 3) {
-        scoreO += 16 * multiplierO / 3;
-        scoreX += 1 * multiplierX;
-      } else if (xCount === 2 && oCount === 1) {
-        scoreO += 1 * multiplierO;
-        scoreX += 3 * multiplierX / 2;
-      } else if (xCount === 3 && oCount === 1) {
-        scoreO += 1 * multiplierO;
-        scoreX += 16 * multiplierX / 3;
-      }
-    });
-    scoreCount = scoreO + scoreX;
-    return scoreCount;
-  }
-
-  evalBoard(board) {
-    const brd = board.board;
-    let scoreO = 0;
-    let scoreX = 0;
-    let scoreCount = 0;
-    winArr.forEach((win, j) => {
-      let xCount = 0;
-      let oCount = 0;
-      win.forEach(i => {
-        if (brd[i] === "X") {
-          xCount += 1;
-        } else if (brd[i] === "O") {
-          oCount += 1;
-        }
-      });
-      if (xCount === 1 && oCount === 0) {
-        scoreX += 1;
-      } else if (xCount === 2 && oCount === 0) {
-        scoreX += 3;
-      } else if (xCount === 3 && oCount === 0) {
-        scoreX += 1600;
-      } else if (xCount === 0 && oCount === 1) {
-        scoreO += 1;
-      } else if (xCount === 0 && oCount === 2) {
-        scoreO += 3;
-      } else if (xCount === 0 && oCount === 3) {
-        scoreO += 1600;
-      }
-    });
-    if (scoreO > 1000) {
-      scoreCount = 16;
-    } else if (scoreX > 1000) {
-      scoreCount = -16;
-    } else {
-      scoreCount = parseFloat(scoreO) - parseFloat(scoreX);
-    }
-    return scoreCount;
-  }
-
-  scoreBoard(board, player) {
-    const brd = board.board;
-    const mvs = this.availableBoardMoves(board);
-    let scoreObj = {};
-    mvs.some(move => {
-      let scoreO = 0;
-      let scoreX = 0;
-      winArr.forEach((win, j) => {
-        let xCount = 0;
-        let oCount = 0;
-        win.forEach(i => {
-          if (brd[i] === "X") {
-            xCount += 1;
-          } else if (brd[i] === "O") {
-            oCount += 1;
-          } else if (i === move) {
-            if (player === "O") {
-              oCount += 1;
-            } else {
-              xCount += 1;
-            }
-          }
-        });
-        if (xCount === 1 && oCount === 0) {
-          scoreX += 1;
-        } else if (xCount === 2 && oCount === 0) {
-          scoreX += 3;
-        } else if (xCount === 3 && oCount === 0) {
-          scoreX = 16;
-          scoreO = 0;
-          if (player === "O") {
-            scoreObj[move] = scoreO - scoreX;
-          } else {
-            scoreObj[move] = scoreX - scoreO;
-          }
-          return true;
-        } else if (xCount === 0 && oCount === 1) {
-          scoreO += 1;
-        } else if (xCount === 0 && oCount === 2) {
-          scoreO += 3;
-        } else if (xCount === 0 && oCount === 3) {
-          scoreO = 16;
-          scoreX = 0;
-          if (player === "O") {
-            scoreObj[move] = scoreO - scoreX;
-          } else {
-            scoreObj[move] = scoreX - scoreO;
-          }
-          return true;
-        }
-      });
-      if (player === "O") {
-        scoreObj[move] = scoreO - scoreX;
-      } else {
-        scoreObj[move] = scoreX - scoreO;
-      }
-    });
-    return scoreObj;
   }
 
   boardWon(board) {
@@ -575,7 +481,7 @@ module.exports = Game;
 /***/ (function(module, exports, __webpack_require__) {
 
 const Game = __webpack_require__(/*! ./lib/game.js */ "./lib/game.js");
-const CPU = __webpack_require__(/*! ./lib/CPU.js */ "./lib/CPU.js");
+const CPU = __webpack_require__(/*! ./lib/CPU1.js */ "./lib/CPU1.js");
 
 document.addEventListener("DOMContentLoaded", function(event) {
   setupBoard();

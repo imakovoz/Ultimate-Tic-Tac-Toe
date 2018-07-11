@@ -136,8 +136,9 @@ class CPU {
             arr.push(this.dupMove(eGame1[2], nMove1));
           });
           arr = arr.sort((a, b) => {
-            return b[0] - a[0];
+            return a[0] - b[0];
           });
+          // console.log(arr);
           arr1.push(arr[0][0]);
           // arr[0] represents best move for CPU after x moves
         });
@@ -149,12 +150,14 @@ class CPU {
       arr2 = arr2.sort((a, b) => {
         return a - b;
       });
+      console.log(arr2);
       if (arr2[0] > this.bestScore) {
-        this.bestScore = arr2[0][0];
+        this.bestScore = arr2[0];
         this.bestMove = move;
       }
       // check if better than current best
     });
+    console.log(this.bestScore);
   }
 
   dupMove(game, move) {
@@ -568,6 +571,7 @@ function makeMove(e) {
           el.style.backgroundColor = "inherit";
         });
       }
+      // download("game.json", JSON.stringify(gameJS));
       let cpu = new CPU(gameJS);
       let test1 = gameJS.makeMove(cpu.bestMove[0], cpu.bestMove[1] + 1);
       document.querySelector(
@@ -621,6 +625,22 @@ function makeMove(e) {
         }
       });
     }
+  }
+
+  function download(filename, text) {
+    var element = document.createElement("a");
+    element.setAttribute(
+      "href",
+      "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+    );
+    element.setAttribute("download", filename);
+
+    element.style.display = "none";
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
   }
 }
 

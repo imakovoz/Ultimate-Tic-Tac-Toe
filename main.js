@@ -86,6 +86,7 @@ function makeMove(e) {
           el.style.backgroundColor = "inherit";
         });
       }
+      // download("game.json", JSON.stringify(gameJS));
       let cpu = new CPU(gameJS);
       let test1 = gameJS.makeMove(cpu.bestMove[0], cpu.bestMove[1] + 1);
       document.querySelector(
@@ -111,15 +112,19 @@ function makeMove(e) {
       }
     } else {
       if (gameJS.player === "X") {
-        document.querySelector(
-          "#box" + e.path[1].id.substring(3) + "> img"
-        ).src =
-          "./assets/O.png";
+        try {
+          document.querySelector(
+            "#box" + e.path[1].id.substring(3) + "> img"
+          ).src =
+            "./assets/O.png";
+        } catch {}
       } else {
-        document.querySelector(
-          "#box" + e.path[1].id.substring(3) + "> img"
-        ).src =
-          "./assets/X.png";
+        try {
+          document.querySelector(
+            "#box" + e.path[1].id.substring(3) + "> img"
+          ).src =
+            "./assets/X.png";
+        } catch {}
       }
     }
     if (gameJS.won()) {
@@ -139,5 +144,21 @@ function makeMove(e) {
         }
       });
     }
+  }
+
+  function download(filename, text) {
+    var element = document.createElement("a");
+    element.setAttribute(
+      "href",
+      "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+    );
+    element.setAttribute("download", filename);
+
+    element.style.display = "none";
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
   }
 }

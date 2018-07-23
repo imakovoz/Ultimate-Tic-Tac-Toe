@@ -3,12 +3,15 @@ const CPU = require("./lib/CPU1.js");
 
 document.addEventListener("DOMContentLoaded", function(event) {
   setupBoard();
+  $("body").data("count", 0);
+  $("body").data("data", { data: [] });
   document.querySelector("#start-button").addEventListener("click", e => {
     setupBoard();
     var player2 = document.querySelector("#player2").selectedOptions[0]
       .textContent;
     let game = new Game(player2);
     $("#game").data("game", game);
+    $("body").data("count", $("body").data("count") + 1);
     let boardEl = "null";
     game.availableMoves().forEach(i => {
       boardEl = document.querySelector("#board" + (i + 1));
@@ -112,24 +115,45 @@ function makeMove(e) {
       }
     } else {
       if (gameJS.player === "X") {
-        try {
+        if (
+          document.querySelector(
+            "#box" + e.path[1].id.substring(3) + "> img"
+          ) !== null
+        ) {
           document.querySelector(
             "#box" + e.path[1].id.substring(3) + "> img"
           ).src =
             "./assets/O.png";
-        } catch {}
+        }
       } else {
-        try {
+        if (
+          document.querySelector(
+            "#box" + e.path[1].id.substring(3) + "> img"
+          ) !== null
+        ) {
           document.querySelector(
             "#box" + e.path[1].id.substring(3) + "> img"
           ).src =
             "./assets/X.png";
-        } catch {}
+        }
       }
     }
     if (gameJS.won()) {
-      alert("Game Over");
+      if ($("body").data("count") < 5) {
+        console.log("test");
+        document.querySelector("#start-button").click();
+        document
+          .querySelector("#box" + Math.floor(Math.random() * 81) + " > img")
+          .click();
+      }
+
+      // alert("Game Over");
     } else {
+      const move = gameJS.availableMoves()[
+        Math.floor(Math.random() * gameJS.availableMoves().length)
+      ];
+
+      var arr = [];
       gameJS.availableMoves().forEach(i => {
         boardEl = document.querySelector("#board" + (i + 1));
         boardEl.className = "board active";
@@ -137,12 +161,22 @@ function makeMove(e) {
         for (var j = 1; j < 10; j++) {
           boxEl = document.querySelector("#box" + (i * 9 + j));
           if (boxEl.className !== "box-filled") {
+            if (move === i) {
+              arr.push(j);
+            }
             document.querySelector("#box" + (i * 9 + j) + " > img").src =
               "./assets/" + gameJS.player + ".png";
           }
           boxEl.addEventListener("click", e => makeMove(e));
         }
       });
+      document
+        .querySelector(
+          "#box" +
+            (move * 9 + arr[Math.floor(Math.random() * arr.length)]) +
+            " > img"
+        )
+        .click();
     }
   }
 
@@ -160,5 +194,14 @@ function makeMove(e) {
     element.click();
 
     document.body.removeChild(element);
+  }
+  function saveText(text, filename) {
+    var a = document.createElement("a");
+    a.setAttribute(
+      "href",
+      "data:text/plain;charset=utf-u," + encodeURIComponent(text)
+    );
+    a.setAttribute("download", filename);
+    a.click();
   }
 }

@@ -452,7 +452,7 @@ class Game {
     $("body")
       .data("data")
       .data.push(arr.concat(arr1));
-    console.log($("body").data("data"));
+    // console.log($("body").data("data"));
     this.game[i].makeMove(this.player, j);
     if (this.player === "X") {
       this.player = "O";
@@ -512,10 +512,25 @@ const Game = __webpack_require__(/*! ./lib/game.js */ "./lib/game.js");
 const CPU = __webpack_require__(/*! ./lib/CPU1.js */ "./lib/CPU1.js");
 
 document.addEventListener("DOMContentLoaded", function(event) {
-  setupBoard();
+  function download(filename, text) {
+    var element = document.createElement("a");
+    element.setAttribute(
+      "href",
+      "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+    );
+    element.setAttribute("download", filename);
+
+    element.style.display = "none";
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+  }
   $("body").data("count", 0);
   $("body").data("data", { data: [] });
-  document.querySelector("#start-button").addEventListener("click", e => {
+  for (var i = 0; i < 200; i++) {
+    console.log(i);
     setupBoard();
     var player2 = document.querySelector("#player2").selectedOptions[0]
       .textContent;
@@ -532,7 +547,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
         boxEl.addEventListener("click", e => makeMove(e));
       }
     });
-  });
+    document
+      .querySelector("#box" + (Math.floor(Math.random() * 81) + 1) + " > img")
+      .click();
+  }
+  download("data.json", JSON.stringify($("body").data("data")));
 });
 
 function setupBoard() {
@@ -601,27 +620,29 @@ function makeMove(e) {
       }
       // download("game.json", JSON.stringify(gameJS));
       let cpu = new CPU(gameJS);
-      let test1 = gameJS.makeMove(cpu.bestMove[0], cpu.bestMove[1] + 1);
-      document.querySelector(
-        "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1)
-      ).className =
-        "box-filled";
-      document.querySelector(
-        "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1)
-      ).style.backgroundColor =
-        "#709fb0";
-      document.querySelector(
-        "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1) + " > img"
-      ).src =
-        "./assets/O.png";
-      gameJS.lastCPU = cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1;
-      if (test1 === "won") {
-        let wonEl = document.createElement("img");
-        wonEl.src = "./assets/O.png";
-        wonEl.height = "100";
-        wonEl.width = "100";
-        document.querySelector("#board" + (cpu.bestMove[0] + 1)).innerHTML =
-          wonEl.outerHTML;
+      if (cpu.bestMove !== null) {
+        let test1 = gameJS.makeMove(cpu.bestMove[0], cpu.bestMove[1] + 1);
+        document.querySelector(
+          "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1)
+        ).className =
+          "box-filled";
+        document.querySelector(
+          "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1)
+        ).style.backgroundColor =
+          "#709fb0";
+        document.querySelector(
+          "#box" + (cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1) + " > img"
+        ).src =
+          "./assets/O.png";
+        gameJS.lastCPU = cpu.bestMove[0] * 9 + cpu.bestMove[1] + 1;
+        if (test1 === "won") {
+          let wonEl = document.createElement("img");
+          wonEl.src = "./assets/O.png";
+          wonEl.height = "100";
+          wonEl.width = "100";
+          document.querySelector("#board" + (cpu.bestMove[0] + 1)).innerHTML =
+            wonEl.outerHTML;
+        }
       }
     } else {
       if (gameJS.player === "X") {
@@ -649,14 +670,7 @@ function makeMove(e) {
       }
     }
     if (gameJS.won()) {
-      if ($("body").data("count") < 5) {
-        console.log("test");
-        document.querySelector("#start-button").click();
-        document
-          .querySelector("#box" + Math.floor(Math.random() * 81) + " > img")
-          .click();
-      }
-
+      // console.log("Game Over");
       // alert("Game Over");
     } else {
       const move = gameJS.availableMoves()[
@@ -690,21 +704,6 @@ function makeMove(e) {
     }
   }
 
-  function download(filename, text) {
-    var element = document.createElement("a");
-    element.setAttribute(
-      "href",
-      "data:text/plain;charset=utf-8," + encodeURIComponent(text)
-    );
-    element.setAttribute("download", filename);
-
-    element.style.display = "none";
-    document.body.appendChild(element);
-
-    element.click();
-
-    document.body.removeChild(element);
-  }
   function saveText(text, filename) {
     var a = document.createElement("a");
     a.setAttribute(

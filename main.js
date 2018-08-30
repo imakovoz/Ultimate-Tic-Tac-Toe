@@ -110,7 +110,10 @@ function makeMove(e) {
         document.querySelector("#board" + (cpu.bestMove[0] + 1)).innerHTML =
           wonEl.outerHTML;
       }
-    } else {
+    } else if (
+      document.querySelector("#box" + e.path[1].id.substring(3) + "> img") !==
+      null
+    ) {
       if (gameJS.player === "X") {
         try {
           document.querySelector(

@@ -595,17 +595,24 @@ function makeMove(e) {
         document.querySelector("#board" + (cpu.bestMove[0] + 1)).innerHTML =
           wonEl.outerHTML;
       }
-    } else {
+    } else if (
+      document.querySelector("#box" + e.path[1].id.substring(3) + "> img") !==
+      null
+    ) {
       if (gameJS.player === "X") {
-        document.querySelector(
-          "#box" + e.path[1].id.substring(3) + "> img"
-        ).src =
-          "./assets/O.png";
+        try {
+          document.querySelector(
+            "#box" + e.path[1].id.substring(3) + "> img"
+          ).src =
+            "./assets/O.png";
+        } catch {}
       } else {
-        document.querySelector(
-          "#box" + e.path[1].id.substring(3) + "> img"
-        ).src =
-          "./assets/X.png";
+        try {
+          document.querySelector(
+            "#box" + e.path[1].id.substring(3) + "> img"
+          ).src =
+            "./assets/X.png";
+        } catch {}
       }
     }
     if (gameJS.won()) {
